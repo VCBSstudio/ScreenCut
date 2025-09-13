@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import AppKit
 import Combine
 
 // MARK: - SwiftUI Integration Manager

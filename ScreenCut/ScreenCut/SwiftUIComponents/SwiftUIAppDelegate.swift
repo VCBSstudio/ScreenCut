@@ -8,26 +8,13 @@
 import Foundation
 import SwiftUI
 import ScreenCaptureKit
-import AppKit
 import KeyboardShortcuts
 import Sparkle
 import Combine
 
 var defaultSavepath: String = ""
 
-extension NSScreen {
-    var displayID: CGDirectDisplayID? {
-        return deviceDescription[NSDeviceDescriptionKey(rawValue: "NSScreenNumber")] as? CGDirectDisplayID
-    }
-}
-
-extension SCDisplay {
-    var nsScreen: NSScreen? {
-        return NSScreen.screens.first(where: { $0.displayID == self.displayID })
-    }
-}
-
-@MainActor
+ @MainActor
 class SwiftUIAppDelegate: NSObject, ObservableObject {
     static let shared = SwiftUIAppDelegate()
     

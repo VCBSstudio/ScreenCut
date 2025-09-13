@@ -7,7 +7,6 @@
 //  Created by helinyu on 2024/10/26.
 //
 import Foundation
-import AppKit
 import Combine
 
 
@@ -63,11 +62,13 @@ class EditActionShareModel: ObservableObject {
                         NotificationCenter.default.post(name:.kDownloadClick, object: nil)
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                             ScreenCut.cutImage()
-                            for w in NSApplication.shared.windows.filter({ $0.title == kAreaSelector || $0.title == kEditImageText}) { w.close() }
+                            // Close screenshot windows using SwiftUI manager
+                            ScreenshotManager.shared.hideScreenshotWindow()
                         }
                     }
                     else {
-                        for w in NSApplication.shared.windows.filter({ $0.title == kAreaSelector || $0.title == kEditImageText}) { w.close() }
+                        // Close screenshot windows using SwiftUI manager
+                        ScreenshotManager.shared.hideScreenshotWindow()
                     }
                    
                 }

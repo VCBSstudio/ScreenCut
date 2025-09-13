@@ -105,7 +105,7 @@ struct SecondEditView: View {
     }
     
     private func createColorView(for type: SelectedColorHandle) -> some View {
-        type.swiftColor
+        type.color
             .frame(height: 30.0)
             .border(type == bottomEditItem.selectColor ? Color.purple: Color.clear, width: 2)
     }

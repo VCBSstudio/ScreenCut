@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import AppKit
 import SwiftUI
 
 enum RetangleResizeHandle: CaseIterable {
@@ -17,24 +16,8 @@ enum RetangleResizeHandle: CaseIterable {
 enum SelectedColorHandle: String, CaseIterable, Identifiable {
     case red, yellow, green, blue, gray, white
     var id: Self { self }
-    var nsColor: NSColor {
-           switch self {
-           case .red:
-               return NSColor.red
-           case .yellow:
-               return NSColor.yellow
-           case .green:
-               return NSColor.green
-           case .blue:
-               return NSColor.blue
-           case .gray:
-               return NSColor.gray
-           case .white:
-               return NSColor.white
-           }
-       }
     
-    var swiftColor : Color {
+    var color: Color {
         switch self {
         case .red:
             return Color.red

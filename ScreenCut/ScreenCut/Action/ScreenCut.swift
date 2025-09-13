@@ -22,7 +22,8 @@ func findCurrentScreen(id: CGDirectDisplayID, displays:[SCDisplay]) -> SCDisplay
 // 这个是查找Screen的内容
 func findCurrentScreen(id: CGDirectDisplayID, screens:[NSScreen]) -> NSScreen? {
     for screen in screens {
-        if (id == screen.displayID) {
+        if let screenID = screen.deviceDescription[NSDeviceDescriptionKey(rawValue: "NSScreenNumber")] as? CGDirectDisplayID,
+           id == screenID {
             return screen
         }
     }

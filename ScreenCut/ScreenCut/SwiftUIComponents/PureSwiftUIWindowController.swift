@@ -6,261 +6,207 @@
 //
 
 import SwiftUI
-import AppKit
 import KeyboardShortcuts
 import ServiceManagement
 
-// MARK: - Pure SwiftUI Window Controller
+// MARK: - Pure SwiftUI Window Manager
 @MainActor
-class PureSwiftUIWindowController: ObservableObject {
-    private var window: NSWindow?
+class PureSwiftUIWindowManager: ObservableObject {
+    static let shared = PureSwiftUIWindowManager()
     
-    func showWindow<T: View>(_ view: T, title: String = "", size: CGSize = CGSize(width: 400, height: 300)) {
-        // Close existing window if any
-        window?.close()
-        
-        let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: size.width, height: size.height),
-            styleMask: [.titled, .closable, .resizable],
-            backing: .buffered,
-            defer: false
-        )
-        
-        window.center()
-        window.title = title
-        window.contentView = NSHostingView(rootView: view)
-        window.makeKeyAndOrderFront(nil)
-        
-        self.window = window
+    @Published var showPreferences = false
+    @Published var showAbout = false
+    
+    private init() {}
+    
+    func showPreferencesWindow() {
+        showPreferences = true
     }
     
-    func hideWindow() {
-        window?.close()
-        window = nil
+    func hidePreferencesWindow() {
+        showPreferences = false
     }
-}
-
-// MARK: - About Window Controller
-class PureSwiftUIAboutWindowController: PureSwiftUIWindowController {
+    
     func showAboutWindow() {
-        showWindow(
-            SwiftUIAboutView(),
-            title: "关于 ScreenCut",
-            size: CGSize(width: 540, height: 200)
-        )
+        showAbout = true
+    }
+    
+    func hideAboutWindow() {
+        showAbout = false
     }
 }
 
 // MARK: - Preferences Window Controller
-class PureSwiftUIPreferencesWindowController: PureSwiftUIWindowController {
+@MainActor
+class PureSwiftUIPreferencesWindowController: ObservableObject {
+    private let windowManager = PureSwiftUIWindowManager.shared
+    
     func showPreferencesWindow() {
-        showWindow(
-            SwiftUIPreferenceSettingsView(),
-            title: "偏好设置",
-            size: CGSize(width: 560, height: 500)
-        )
+        windowManager.showPreferencesWindow()
+    }
+    
+    func hidePreferencesWindow() {
+        windowManager.hidePreferencesWindow()
+    }
+}
+
+// MARK: - About Window Controller
+@MainActor
+class PureSwiftUIAboutWindowController: ObservableObject {
+    private let windowManager = PureSwiftUIWindowManager.shared
+    
+    func showAboutWindow() {
+        windowManager.showAboutWindow()
+    }
+    
+    func hideAboutWindow() {
+        windowManager.hideAboutWindow()
+    }
+}
+
+// MARK: - Preferences View
+struct PreferencesView: View {
+    @ObservedObject private var windowManager = PureSwiftUIWindowManager.shared
+    @AppStorage(kSelectedSavePath) private var selectedPath: String = ""
+    @AppStorage(kAutoStartup) private var autoStartup: Bool = false
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("偏好设置")
+                .font(.title)
+                .fontWeight(.bold)
+            
+            VStack(alignment: .leading, spacing: 15) {
+                HStack {
+                    Text("保存路径:")
+                        .frame(width: 100, alignment: .leading)
+                    
+                    TextField("选择保存路径", text: $selectedPath)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                    
+                    Button("选择") {
+                        // TODO: Implement file picker
+                    }
+                }
+                
+                HStack {
+                    Text("开机自启:")
+                        .frame(width: 100, alignment: .leading)
+                    
+                    Toggle("", isOn: $autoStartup)
+                        .onChange(of: autoStartup) { newValue in
+                            updateAutoStartup(newValue)
+                        }
+                }
+            }
+            
+            HStack {
+                Button("确定") {
+                    windowManager.hidePreferencesWindow()
+                }
+                .buttonStyle(.borderedProminent)
+                
+                Button("取消") {
+                    windowManager.hidePreferencesWindow()
+                }
+                .buttonStyle(.bordered)
+            }
+        }
+        .padding()
+        .frame(width: 400, height: 200)
+    }
+    
+    private func updateAutoStartup(_ enabled: Bool) {
+        do {
+            if enabled {
+                try SMAppService.mainApp.register()
+            } else {
+                try SMAppService.mainApp.unregister()
+            }
+        } catch {
+            print("Failed to update auto startup: \(error)")
+        }
     }
 }
 
 // MARK: - SwiftUI About View
 struct SwiftUIAboutView: View {
+    @ObservedObject private var windowManager = PureSwiftUIWindowManager.shared
+    
     var body: some View {
-        VStack(alignment: .leading) {
-            HStack(alignment: .center) {
-                Image("logo-img-white")
-                VStack(alignment: .leading) {
-                    Text("ScreenCut")
-                        .fontWeight(.bold)
-                        .font(.title)
-                    Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")
-                        .font(.system(size: 14))
-                }
-                Spacer()
-            }
-            .frame(width: 540, height: 80.0)
-            .background(.black)
-            .foregroundColor(.white)
+        VStack(spacing: 20) {
+            Image(systemName: "scissors")
+                .font(.system(size: 60))
+                .foregroundColor(.blue)
             
-            VStack(alignment: .leading) {
-                Text("你所使用的版本是最新版本")
-                
-                Spacer()
-                Spacer()
-                Spacer()
-                Spacer()
-                
-                Text("使用本软件意味着你了解并同意遵循服务条款")
-                Spacer()
-                Text("软件使用部分开源代码和公共领域代码，并遵循相应的协议。")
-                Spacer()
-                Text("helinyu 版权所有 @2024-未来")
-                    .font(.system(size: 12))
-                    .foregroundColor(.gray)
-                Spacer()
+            Text("ScreenCut")
+                .font(.title)
+                .fontWeight(.bold)
+            
+            Text("版本 1.0.0")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+            
+            Text("一个强大的屏幕截图工具")
+                .font(.body)
+                .multilineTextAlignment(.center)
+            
+            Button("确定") {
+                windowManager.hideAboutWindow()
             }
-            .padding(EdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 0))
+            .buttonStyle(.borderedProminent)
         }
-        .frame(width: 540, height: 200)
+        .padding()
+        .frame(width: 300, height: 250)
     }
 }
 
-// MARK: - SwiftUI Preferences View
-struct SwiftUIPreferenceSettingsView: View {
-    enum PathSelectionType: String, CaseIterable {
-        case defaultS, desktopS, documentS, imageS
-        var id: Self { self }
-        
-        var path: String {
-            switch self {
-            case .defaultS:
-                return defaultSavepath
-            case .desktopS:
-                return FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first?.path ?? ""
-            case .documentS:
-                return FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.path ?? ""
-            case .imageS:
-                return FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first?.path ?? ""
+// MARK: - Window Overlay
+struct WindowOverlay: View {
+    @ObservedObject private var windowManager = PureSwiftUIWindowManager.shared
+    
+    var body: some View {
+        ZStack {
+            if windowManager.showPreferences {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        windowManager.hidePreferencesWindow()
+                    }
+                
+                VStack {
+                    Spacer()
+                    PreferencesView()
+                        .background(Color(.windowBackgroundColor))
+                        .cornerRadius(10)
+                        .shadow(radius: 10)
+                    Spacer()
+                }
             }
-        }
-        
-        var name: String {
-            switch self {
-            case .defaultS:
-                return "ScreenCut"
-            case .desktopS:
-                return kDesktoptext
-            case .documentS:
-                return kDocumentText
-            case .imageS:
-                return kImageText
+            
+            if windowManager.showAbout {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        windowManager.hideAboutWindow()
+                    }
+                
+                VStack {
+                    Spacer()
+                    SwiftUIAboutView()
+                        .background(Color(.windowBackgroundColor))
+                        .cornerRadius(10)
+                        .shadow(radius: 10)
+                    Spacer()
+                }
             }
         }
     }
-    
-    @AppStorage(kplayAudioOfFinished) private var playAudioOfFinished: Bool = false
-    @AppStorage(ksavePasteboardSameTime) private var savePasteboardSameTime: Bool = true
-    @AppStorage(konlySaveInPasteBoard) private var onlySaveInPasteBoard: Bool = false
-    @AppStorage(kautoUpdate) private var autoUpdate: Bool = false
-    @AppStorage(kautoLaunchByComputer) private var autoLaunchByComputer: Bool = false
-    @AppStorage(kSelectedSavePath) private var lastSelectedPath: String = defaultSavepath
-    
-    @State private var selectOption: PathSelectionType = .defaultS
-    
-    var body: some View {
-        VStack(alignment: .leading) {
-            HStack(alignment: .center) {
-                Spacer().frame(width: 20)
-                Image("logo-img-white")
-                VStack(alignment: .leading) {
-                    Text("偏好设置")
-                        .fontWeight(.bold)
-                        .font(.title)
-                    Text("请使用前完成一下设置")
-                        .font(.system(size: 14))
-                }
-                Spacer()
-            }
-            .frame(height: 80.0)
-            .background(.black)
-            .foregroundColor(.white)
-            
-            VStack(alignment: .leading) {
-                HStack() {
-                    Text("全屏截图快捷键: ")
-                        .frame(width: kLeftTextWidth, alignment: .trailing)
-                    KeyboardShortcuts.Recorder("", name: .fullScreenCut)
-                }
-                HStack() {
-                    Text("区域截图快捷键: ")
-                        .frame(width: kLeftTextWidth, alignment: .trailing)
-                    KeyboardShortcuts.Recorder("", name: .selectedAreaCut)
-                }
-                HStack(alignment: .top) {
-                    Text("截屏时: ")
-                        .frame(width: kLeftTextWidth, alignment: .trailing)
-                    VStack(alignment: .leading) {
-                        HStack {
-                            Spacer().frame(width: kRightFirstSpaceWidth)
-                            Toggle("截图完成后播放声音", isOn: $playAudioOfFinished)
-                                .toggleStyle(CheckboxToggleStyle())
-                        }
-                    }
-                }
-                
-                Divider()
-                Spacer().frame(height: 10.0)
-                
-                HStack(alignment: .top) {
-                    Text("图片保存的位置:")
-                        .frame(width: kLeftTextWidth, alignment: .trailing)
-                    VStack(alignment: .leading) {
-                        HStack {
-                            Text(self.lastSelectedPath)
-                            Button("修改") {
-                                let openPanel = NSOpenPanel()
-                                openPanel.canChooseFiles = false
-                                openPanel.canChooseDirectories = true
-                                openPanel.allowedContentTypes = []
-                                openPanel.allowsOtherFileTypes = false
-                                if openPanel.runModal() == NSApplication.ModalResponse.OK {
-                                    if let path = openPanel.urls.first?.path {
-                                        self.lastSelectedPath = path
-                                    }
-                                }
-                            }
-                        }
-                        Toggle("同时保存在粘贴版", isOn: $savePasteboardSameTime)
-                            .toggleStyle(CheckboxToggleStyle())
-                        Toggle("只保存到粘贴版", isOn: $onlySaveInPasteBoard)
-                            .toggleStyle(CheckboxToggleStyle())
-                    }
-                }
-                
-                Spacer().frame(height: 10.0)
-                Divider()
-                Spacer().frame(height: 10.0)
-                
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading) {
-                        HStack {
-                            Spacer().frame(width: kLeftTextWidth)
-                            Spacer().frame(width: kRightFirstSpaceWidth)
-                            Toggle("开机自动启动", isOn: $autoLaunchByComputer)
-                                .toggleStyle(CheckboxToggleStyle())
-                        }
-                        .onChange(of: autoLaunchByComputer) { oldValue, newValue in
-                            do {
-                                if newValue {
-                                    try SMAppService.mainApp.register()
-                                } else {
-                                    try SMAppService.mainApp.unregister()
-                                }
-                            } catch {
-                                print("Failed to update launch at login setting: \(error)")
-                            }
-                        }
-                        HStack {
-                            Spacer().frame(width: kLeftTextWidth)
-                            Spacer().frame(width: kRightFirstSpaceWidth)
-                            Toggle("自动检查更新", isOn: $autoUpdate)
-                                .toggleStyle(CheckboxToggleStyle())
-                        }
-                    }
-                }
-                
-                HStack {
-                    Spacer().frame(width: kLeftTextWidth)
-                    Spacer().frame(width: kRightFirstSpaceWidth)
-                    Button {
-                        NotificationCenter.default.post(name: Notification.Name("update.app.noti"), object: "")
-                    } label: {
-                        Text("检查更新")
-                    }
-                }
-                
-                Spacer().frame(height: 30.0)
-            }
-            .padding(EdgeInsets(top: 0, leading: 40, bottom: 0, trailing: 0))
-        }
+}
+
+// MARK: - Preview
+struct WindowOverlay_Previews: PreviewProvider {
+    static var previews: some View {
+        WindowOverlay()
     }
 }

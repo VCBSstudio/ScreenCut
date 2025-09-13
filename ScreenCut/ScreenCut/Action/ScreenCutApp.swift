@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import AppKit
 import KeyboardShortcuts
 
 extension KeyboardShortcuts.Name {
@@ -18,16 +17,13 @@ extension KeyboardShortcuts.Name {
 struct ScreenCutApp: App {
     
     @StateObject private var swiftUIAppDelegate = SwiftUIAppDelegate.shared
-    
-    init() {
-        // 设置激活策略为 accessory
-        NSApplication.shared.setActivationPolicy(.accessory)
-        
-        // 初始化 SwiftUI AppDelegate
-        swiftUIAppDelegate.applicationDidFinishLaunching()
-    }
+    @StateObject private var windowManager = PureSwiftUIWindowManager.shared
+    @StateObject private var screenshotManager = ScreenshotManager.shared
     
     var body: some Scene {
+        // 初始化 SwiftUI AppDelegate
+        let _ = swiftUIAppDelegate.applicationDidFinishLaunching()
+        
 //         直接使用MenuBar 替代掉主窗口
         MenuBarExtra("", systemImage: "scissors"){
             Button("截屏") {
@@ -35,7 +31,6 @@ struct ScreenCutApp: App {
             }
             .padding()
             Button("选择截屏") {
-                NSCursor.crosshair.set()
                 ScreenshotManager.shared.showScreenshotWindow()
             }
             Divider()
@@ -49,11 +44,31 @@ struct ScreenCutApp: App {
             .padding()
             Divider()
             Button("退出") {
-                NSApplication.shared.terminate(nil)
+                exit(0)
             }
             .keyboardShortcut("Q", modifiers: [.command])
         }
         
+        // Add window scenes for overlay views
+        WindowGroup("Screenshot Overlay") {
+            if screenshotManager.showScreenshotOverlay {
+                ScreenshotOverlayView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.clear)
+                    .ignoresSafeArea()
+            }
+        }
+        .windowStyle(.hiddenTitleBar)
+        .windowResizability(.contentSize)
+        
+        WindowGroup("Window Overlay") {
+            WindowOverlay()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color.clear)
+                .ignoresSafeArea()
+        }
+        .windowStyle(.hiddenTitleBar)
+        .windowResizability(.contentSize)
     }
 }
 

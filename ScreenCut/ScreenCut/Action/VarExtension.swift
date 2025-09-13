@@ -27,6 +27,7 @@ let konlySaveInPasteBoard = "onlySaveInPasteBoard"
 let kautoUpdate = "autoUpdate"
 let kautoLaunchByComputer = "autoLaunchByComputer"
 let kSelectedSavePath = "kSelectedSavePath1"
+let kAutoStartup = "kAutoStartup"
 
 
 

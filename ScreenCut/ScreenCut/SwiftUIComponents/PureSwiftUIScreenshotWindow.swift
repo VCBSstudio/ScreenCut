@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import AppKit
 import Combine
 
 // MARK: - Pure SwiftUI Screenshot Window
@@ -38,35 +37,14 @@ class ScreenshotManager: ObservableObject {
     static let shared = ScreenshotManager()
     
     @Published var isScreenshotActive = false
-    @Published var currentWindow: NSWindow?
+    @Published var showScreenshotOverlay = false
     
     private init() {}
     
     func showScreenshotWindow() {
         guard !isScreenshotActive else { return }
         
-        let screenFrame = NSScreen.main?.frame ?? NSRect(x: 0, y: 0, width: 1920, height: 1080)
-        
-        let window = NSWindow(
-            contentRect: screenFrame,
-            styleMask: [.borderless],
-            backing: .buffered,
-            defer: false
-        )
-        
-        window.isOpaque = false
-        window.hasShadow = false
-        window.level = .screenSaver - 1
-        window.title = kAreaSelector
-        window.backgroundColor = NSColor.clear
-        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-        window.isReleasedWhenClosed = false
-        
-        let hostingView = NSHostingView(rootView: PureSwiftUIScreenshotWindow())
-        window.contentView = hostingView
-        
-        window.makeKeyAndOrderFront(nil)
-        currentWindow = window
+        showScreenshotOverlay = true
         isScreenshotActive = true
         
         // 设置屏幕ID
@@ -74,8 +52,7 @@ class ScreenshotManager: ObservableObject {
     }
     
     func hideScreenshotWindow() {
-        currentWindow?.close()
-        currentWindow = nil
+        showScreenshotOverlay = false
         isScreenshotActive = false
     }
 }
@@ -117,9 +94,22 @@ struct ScreenshotOverlayView: View {
                     )
             }
             
-            // Drawing views
-            ForEach(Array(operViews.enumerated()), id: \.offset) { index, view in
-                view
+            // Drawing views based on current tool
+            Group {
+                switch bottomEditItem.cutType {
+                case .square:
+                    SwiftUIRectangleView(editModel: bottomEditItem)
+                case .circle:
+                    SwiftUICircleView(editModel: bottomEditItem)
+                case .arrow:
+                    SwiftUIArrowView(editModel: bottomEditItem)
+                case .doodle:
+                    SwiftUIDoodleView(editModel: bottomEditItem)
+                case .text:
+                    SwiftUITextView(editModel: bottomEditItem)
+                case .none:
+                    EmptyView()
+                }
             }
             
             // Bottom edit panel
@@ -226,13 +216,7 @@ struct ScreenshotOverlayView: View {
 
 // MARK: - Helper Functions
 func findCurrentScreenForSwiftUI() -> CGDirectDisplayID? {
-    let mouseLocation = NSEvent.mouseLocation
-    let screens = NSScreen.screens
-    for screen in screens {
-        let screenFrame = screen.frame
-        if screenFrame.contains(mouseLocation) {
-            return screen.displayID
-        }
-    }
-    return nil
+    // For now, return the main display ID
+    // In a real implementation, you might want to use Core Graphics APIs
+    return CGMainDisplayID()
 }

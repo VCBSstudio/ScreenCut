@@ -1,4 +1,6 @@
+#!/usr/bin/env python3
 import subprocess
+import os
 
 def clone_github_repositories(file_path):
     with open(file_path, 'r') as file:

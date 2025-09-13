@@ -52,7 +52,7 @@ class AppDelegate : NSObject, NSApplicationDelegate {
         
         KeyboardShortcuts.onKeyDown(for: .selectedAreaCut) {[] in
             NSCursor.crosshair.set()
-            ScreenshotWindow().makeKeyAndOrderFront(nil)
+            SwiftUIScreenshotWindowController().showWindow(nil)
         }
         
         updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: self, userDriverDelegate: self)

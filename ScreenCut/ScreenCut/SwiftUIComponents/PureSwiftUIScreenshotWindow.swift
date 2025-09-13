@@ -49,11 +49,26 @@ class ScreenshotManager: ObservableObject {
         
         // 设置屏幕ID
         SwiftUIAppDelegate.shared.screentId = findCurrentScreenForSwiftUI()
+        
+        // 显示截图窗口
+        DispatchQueue.main.async {
+            if let window = NSApplication.shared.windows.first(where: { $0.identifier?.rawValue == "screenshot-overlay" }) {
+                window.makeKeyAndOrderFront(nil)
+                window.level = .screenSaver
+            }
+        }
     }
     
     func hideScreenshotWindow() {
         showScreenshotOverlay = false
         isScreenshotActive = false
+        
+        // 隐藏截图窗口
+        DispatchQueue.main.async {
+            if let window = NSApplication.shared.windows.first(where: { $0.identifier?.rawValue == "screenshot-overlay" }) {
+                window.orderOut(nil)
+            }
+        }
     }
 }
 
@@ -61,6 +76,7 @@ class ScreenshotManager: ObservableObject {
 struct ScreenshotOverlayView: View {
     @StateObject private var bottomEditItem = EditCutBottomShareModel.shared
     @ObservedObject private var actionItem = EditActionShareModel.shared
+    @ObservedObject private var screenshotManager = ScreenshotManager.shared
     
     @State private var selectionRect = CGRect.zero
     @State private var hasSelectionRect = false
@@ -77,10 +93,12 @@ struct ScreenshotOverlayView: View {
     @State private var currentOperView: AnyView?
     
     var body: some View {
-        ZStack {
-            // Background overlay
-            Color.black.opacity(0.3)
-                .ignoresSafeArea()
+        Group {
+            if screenshotManager.showScreenshotOverlay {
+                ZStack {
+                    // Background overlay
+                    Color.black.opacity(0.3)
+                        .ignoresSafeArea()
             
             // Selection rectangle
             if hasSelectionRect {
@@ -141,6 +159,10 @@ struct ScreenshotOverlayView: View {
         .onKeyPress(.escape) {
             ScreenshotManager.shared.hideScreenshotWindow()
             return .handled
+        }
+            } else {
+                EmptyView()
+            }
         }
     }
     

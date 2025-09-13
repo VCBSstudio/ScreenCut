@@ -49,17 +49,17 @@ struct ScreenCutApp: App {
             .keyboardShortcut("Q", modifiers: [.command])
         }
         
-        // Add window scenes for overlay views
-        WindowGroup("Screenshot Overlay") {
-            if screenshotManager.showScreenshotOverlay {
-                ScreenshotOverlayView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color.clear)
-                    .ignoresSafeArea()
-            }
+        // Screenshot overlay window
+        Window("Screenshot Overlay", id: "screenshot-overlay") {
+            ScreenshotOverlayView()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color.clear)
+                .ignoresSafeArea()
         }
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentSize)
+        .defaultPosition(.center)
+        .defaultSize(width: NSScreen.main?.frame.width ?? 1920, height: NSScreen.main?.frame.height ?? 1080)
         
         WindowGroup("Window Overlay") {
             WindowOverlay()

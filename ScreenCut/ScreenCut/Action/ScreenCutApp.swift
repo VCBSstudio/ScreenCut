@@ -33,7 +33,7 @@ struct ScreenCutApp: App {
             .padding()
             Button("选择截屏") {
                 NSCursor.crosshair.set()
-                SwiftUIScreenshotWindowController().showWindow(nil)
+                ScreenshotWindow().makeKeyAndOrderFront(nil)
             }
             Divider()
             Button("偏好设置") {

@@ -40,7 +40,7 @@ struct TranslatorView: View {
                 let paste = NSPasteboard.general
                 paste.clearContents()
                 paste.setString(resultText ?? "", forType: .string)
-                ToastWindow(message:"拷贝成功").showToast()
+                ToastManager.shared.show("拷贝成功")
 
             }
             Text(resultText ?? "没有文字内容")

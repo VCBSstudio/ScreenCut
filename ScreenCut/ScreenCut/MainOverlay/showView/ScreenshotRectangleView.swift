@@ -256,7 +256,7 @@ class ScreenshotRectangleView: ScreenshotBaseOverlayView {
 //    这样是为了让mouseDown在superView中监听到来调用子View的方法
     override func hitTest(_ point: NSPoint) -> NSView? {
         let hitView = super.hitTest(point)
-        if hitView == self && hitView is ScreenshotRectangleView && hitView as? ScreenshotRectangleView !== hitView as? ScreenshotOverlayView {
+        if hitView == self && hitView is ScreenshotRectangleView {
 //            print("对象是 ParentClass 类型而不是 ChildClass（或其他子类）")
 //            print("lt -- 当前子类的页面传递处理")
             return self.superview

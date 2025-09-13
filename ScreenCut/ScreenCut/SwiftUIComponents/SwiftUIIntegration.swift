@@ -14,19 +14,21 @@ class SwiftUIIntegrationManager: ObservableObject {
     static let shared = SwiftUIIntegrationManager()
     
     @Published var isScreenshotMode = false
-    @Published var currentScreenshotWindow: SwiftUIScreenshotWindowController?
+    @Published var currentScreenshotWindow: ScreenshotManager?
     
     private init() {}
     
+    @MainActor
     func startScreenshotMode() {
         isScreenshotMode = true
-        currentScreenshotWindow = SwiftUIScreenshotWindowController()
-        currentScreenshotWindow?.showWindow(nil)
+        currentScreenshotWindow = ScreenshotManager.shared
+        currentScreenshotWindow?.showScreenshotWindow()
     }
     
+    @MainActor
     func endScreenshotMode() {
         isScreenshotMode = false
-        currentScreenshotWindow?.close()
+        currentScreenshotWindow?.hideScreenshotWindow()
         currentScreenshotWindow = nil
     }
 }
@@ -214,7 +216,7 @@ struct EnhancedScreenshotOverlayView: View {
     }
     
     private func showToast(message: String) {
-        ToastController.shared.showToast(message: message)
+        ToastManager.shared.show(message)
     }
     
     private func cleanup() {

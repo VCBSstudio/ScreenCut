@@ -17,11 +17,14 @@ extension KeyboardShortcuts.Name {
 @main
 struct ScreenCutApp: App {
     
-    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @StateObject private var swiftUIAppDelegate = SwiftUIAppDelegate.shared
     
     init() {
         // 设置激活策略为 accessory
         NSApplication.shared.setActivationPolicy(.accessory)
+        
+        // 初始化 SwiftUI AppDelegate
+        swiftUIAppDelegate.applicationDidFinishLaunching()
     }
     
     var body: some Scene {
@@ -33,17 +36,15 @@ struct ScreenCutApp: App {
             .padding()
             Button("选择截屏") {
                 NSCursor.crosshair.set()
-                ScreenshotWindow().makeKeyAndOrderFront(nil)
+                ScreenshotManager.shared.showScreenshotWindow()
             }
             Divider()
             Button("偏好设置") {
-                let preferenceWindowController = PreferenceSettingsWindowController()
-                preferenceWindowController.showWindow(nil)
+                PureSwiftUIPreferencesWindowController().showPreferencesWindow()
             }
             .padding()
             Button("关于"){
-                let aboutWindowController = AboutWindowController()
-                aboutWindowController.showWindow(nil)
+                PureSwiftUIAboutWindowController().showAboutWindow()
             }
             .padding()
             Divider()

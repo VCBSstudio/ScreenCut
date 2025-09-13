@@ -63,7 +63,7 @@ class ScreenCut {
             return
         }
         let display: SCDisplay = findCurrentScreen(
-            id: AppDelegate.shared.screentId!,
+            id: SwiftUIAppDelegate.shared.screentId!,
             displays: displays
         )!
         let contentFilter = SCContentFilter(display: display, excludingWindows: [])
@@ -241,14 +241,15 @@ class ScreenCut {
     
     static func cutSelectionAreaImage() -> AnyPublisher<CGImage, NSError> {
         return Future<CGImage, NSError> { promise in
-            guard let displays = ScreenCut.availableContent?.displays else {
-                promise(.failure(NSError(domain: "display error", code: -1, userInfo: [NSLocalizedDescriptionKey: "没有获取设备"])))
-                return
-            }
-            let display: SCDisplay = findCurrentScreen(
-                id: AppDelegate.shared.screentId!,
-                displays: displays
-            )!
+            DispatchQueue.main.async {
+                guard let displays = ScreenCut.availableContent?.displays else {
+                    promise(.failure(NSError(domain: "display error", code: -1, userInfo: [NSLocalizedDescriptionKey: "没有获取设备"])))
+                    return
+                }
+                let display: SCDisplay = findCurrentScreen(
+                    id: SwiftUIAppDelegate.shared.screentId!,
+                    displays: displays
+                )!
 //            print("lt -- displays : \(displays)")
             let contentFilter = SCContentFilter(display: display, excludingWindows: [])
             let configuration = SCStreamConfiguration()
@@ -263,14 +264,15 @@ class ScreenCut {
             configuration.preservesAspectRatio = true
 //            print("lt -- source \(configuration.sourceRect) desc:\(configuration.destinationRect)")
             
-            SCScreenshotManager.captureImage(contentFilter: contentFilter, configuration: configuration) { image, error in
+                SCScreenshotManager.captureImage(contentFilter: contentFilter, configuration: configuration) { image, error in
 //                print("lt -- image \(String(describing: image)): eror : %@", error.debugDescription)
-                
-                if error == nil && image != nil {
-                    promise(.success(image!))
-                }
-                else {
-                    promise(.failure((error ?? NSError(domain: "capture failure", code: -1, userInfo: [NSLocalizedDescriptionKey: "获取截图数据失败"])) as NSError))
+                    
+                    if error == nil && image != nil {
+                        promise(.success(image!))
+                    }
+                    else {
+                        promise(.failure((error ?? NSError(domain: "capture failure", code: -1, userInfo: [NSLocalizedDescriptionKey: "获取截图数据失败"])) as NSError))
+                    }
                 }
             }
         }.eraseToAnyPublisher()

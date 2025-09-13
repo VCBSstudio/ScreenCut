@@ -45,7 +45,7 @@ struct OCRView: View {
                     paste.clearContents()
                     paste.setString(resultText ?? "", forType: .string)
                     DispatchQueue.main.async {
-                        ToastWindow(message:"拷贝成功").showToast()
+                        ToastManager.shared.show("拷贝成功")
                     }
                 }
                 Button("翻译") {
@@ -58,7 +58,7 @@ struct OCRView: View {
                             print("finished")
                         case .failure(let error):
                             DispatchQueue.main.async {
-                                ToastWindow(message: error.userInfo.description).showToast()
+                                ToastManager.shared.show(error.userInfo.description)
                             }
                         }
                     } receiveValue: { text in

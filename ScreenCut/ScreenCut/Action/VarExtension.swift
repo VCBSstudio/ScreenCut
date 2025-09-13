@@ -19,6 +19,8 @@ extension Notification.Name {
     static let kDrawSizeTypeChange = Notification.Name("kDrawSizeTypeChange")
     static let kTextSizeTypeChange = Notification.Name("kTextSizeTypeChange")
     static let kDownloadClick = Notification.Name("kDownloadClick")
+    static let showScreenshotWindow = Notification.Name("showScreenshotWindow")
+    static let hideScreenshotWindow = Notification.Name("hideScreenshotWindow")
 }
 
 let kplayAudioOfFinished = "playAudioOfFinished"

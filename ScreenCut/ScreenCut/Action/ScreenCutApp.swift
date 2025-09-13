@@ -7,6 +7,7 @@
 
 import SwiftUI
 import KeyboardShortcuts
+import Combine
 
 extension KeyboardShortcuts.Name {
     static let selectedAreaCut = Self("selectedAreaCut")
